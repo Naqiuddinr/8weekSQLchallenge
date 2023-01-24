@@ -1,4 +1,8 @@
-# Case Study #1: Danny's Diner
+# Case Study #1: Danny's Diner 🍜
+
+You can view the full case study [HERE](https://8weeksqlchallenge.com/case-study-1/)! In all honesty, I do refer to some online resources when I was working on this case study. However, I tried my best to limit my reference and to write my own code as much as possible. This is my first SQL project/case study that I worked on, hopefully on the next one I won't have to depend on any reference as much.
+
+Now, let's jump directly into the questions, ```coding``` and solutions 💻📝
 
 ### 1. What is the total amount each customer spent at the restaurant?
 
@@ -20,6 +24,8 @@ ORDER BY customer_id;
 |B            |$74           |
 |C            |$36           |
 
+- For this question, the ```SUM``` funtion was used to add up the total amount spent for each customer
+
 ### 2. How many days has each customer visited the restaurant?
 
 ```sql
@@ -38,6 +44,9 @@ ORDER BY customer_id;
 |A            |4             |
 |B            |6             |
 |C            |2             |
+
+- We use the ```COUNT``` funtion on ```order_date``` to count the number of days each customer visited.
+- It's important to include ```DISTINCT``` in this case to avoid multiple count of the same date.
 
 ### 3. What was the first item from the menu purchased by each customer?
 
@@ -65,6 +74,10 @@ ORDER BY customer_id;
 |C            |Ramen         |
 |C            |Ramen         |
 
+- For this question, we use ```DENSE_RANK``` to identify which product was purchased first based on each customer's ```order_date```
+- ```PARTION BY``` over ```customer_id``` so the ranks will be organized for each customer
+- The table will only show the first item purchased when we set ```item_rank=1```
+
 ### 4. What is the most purchased item on the menu and how many times was it purchased by all customers?
 
 ```sql
@@ -81,6 +94,9 @@ LIMIT 1;
 | Product_Name | Order_Count |
 |--------------|-------------|
 |Ramen         |8            |
+
+- Use ```COUNT``` function to identify how many times each product was purchased
+- ```ORDER BY ... DESC``` and ```LIMIT 1``` were set to only show the most purchased product
 
 ### 5. Which item was the most popular for each customer?
 ```sql
@@ -108,6 +124,10 @@ WHERE rank_num = 1;
 |B            |Sushi         |
 |C            |Ramen         |
 
+- ```DENSE_RANK``` were used again in combination with ```COUNT``` funtion to rank up the most purchased item for each customer
+- We set ```rank_num = 1``` to only show the most purchased item
+- Since customer B have purchased the same amount of times for all product, hence all product will be ranked as 1 and listed in the table.
+
 ### 6. Which item was purchased first by the customer after they became a member?
 ```sql
 SELECT 	customer_id,
@@ -133,6 +153,8 @@ ORDER BY customer_id;
 |-------------|--------------|
 |A            |Curry         |
 |B            |Sushi         |
+
+- The ```WHERE``` funtion was used to set a condition of ```order_date >= join_date```, this is because we only want to see the first item purchased AFTER they have registered as a member.
 
 ### 7. Which item was purchased just before the customer became a member?
 ```sql
@@ -161,6 +183,8 @@ ORDER BY customer_id;
 |A            |Curry         |
 |B            |Sushi         |
 
+-Similar to previous question, but instead the ```WHERE``` condition were set as ```order_date < join_date``` and ```DESC``` were added in the ```ORDER BY``` call in order to only view the item purchased BEFORE the customer registered for membership.
+
 ### 8. What is the total items and amount spent for each member before they became a member?
 ```sql
 SELECT 	sales.customer_id,
@@ -180,6 +204,10 @@ ORDER BY sales.customer_id;
 |-------------|------------|--------------|
 |A            |2           |25            |
 |A            |3           |40            |
+
+- We use ```COUNT``` function to count how many times a product has been purchased by each customer
+- ```SUM``` to add up the total amount spent for each customer
+- What's important here is the ```WHERE``` function which I used to set a condition of ```order_date < join_date``` in order to only view the items purchased BEFORE membership.
 
 ### 9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
 ```sql
@@ -201,6 +229,8 @@ ORDER BY customer_id;
 |B            |940          |
 |C            |360          |
 
+- Since we have a condition of 10 points for all items except of sushi which have a 2x multiplier, we us ```CASE``` to set the condition.
+
 ### 10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
 ```sql
 SELECT 	sales.customer_id,
@@ -221,3 +251,6 @@ ORDER BY sales.customer_id;
 |-------------|-------------|
 |A            |1370         |
 |B            |940          |
+
+- This is where it gets tricky, we add another condition ```AND``` into our ```CASE``` as we only allow the 2x point multiplier freebies happening tduring the first week of membership.
+- But you have to remember, when ```AND``` is used, both condition has to be met or else the code will proceed to the next condition. 
