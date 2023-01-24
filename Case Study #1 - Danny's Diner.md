@@ -109,3 +109,115 @@ WHERE rank_num = 1;
 |C            |Ramen         |
 
 ### 6. Which item was purchased first by the customer after they became a member?
+```sql
+SELECT 	customer_id,
+	product_name
+        
+FROM 
+	(SELECT sales.customer_id,
+         	sales.order_date,
+         	sales.product_id,
+         	DENSE_RANK () OVER (PARTITION BY sales.customer_id ORDER BY sales.order_date) AS order_date_rank
+         
+         FROM dannys_diner.sales
+         JOIN dannys_diner.members ON sales.customer_id = members.customer_id
+         WHERE sales.order_date >= members.join_date) AS member_rank_table
+         
+JOIN dannys_diner.menu ON member_rank_table.product_id = menu.product_id
+WHERE order_date_rank = 1
+ORDER BY customer_id;
+```
+
+#### SOLUTION
+| Customer_ID | Product_Name |
+|-------------|--------------|
+|A            |Curry         |
+|B            |Sushi         |
+
+### 7. Which item was purchased just before the customer became a member?
+```sql
+SELECT 	customer_id,
+	product_name
+        
+FROM 
+	(SELECT sales.customer_id,
+         	sales.order_date,
+         	sales.product_id,
+         	DENSE_RANK () OVER (PARTITION BY sales.customer_id ORDER BY sales.order_date DESC) AS order_date_rank
+         
+         FROM dannys_diner.sales
+         JOIN dannys_diner.members ON sales.customer_id = members.customer_id
+         WHERE sales.order_date < members.join_date) AS member_rank_table
+         
+JOIN dannys_diner.menu ON member_rank_table.product_id = menu.product_id
+WHERE order_date_rank = 1
+ORDER BY customer_id;
+```
+
+#### SOLUTION
+| Customer_ID | Product_Name |
+|-------------|--------------|
+|A            |Sushi         |
+|A            |Curry         |
+|B            |Sushi         |
+
+### 8. What is the total items and amount spent for each member before they became a member?
+```sql
+SELECT 	sales.customer_id,
+	COUNT (menu.product_id) AS total_item,
+        SUM (menu.price) AS total_amount
+        
+FROM dannys_diner.sales
+INNER JOIN dannys_diner.menu ON sales.product_id = menu.product_id
+INNER JOIN dannys_diner.members ON members.customer_id = sales.customer_id
+WHERE sales.order_date < members.join_date
+GROUP BY sales.customer_id
+ORDER BY sales.customer_id;
+```
+
+#### SOLUTION
+| Customer_ID | Total_Item | Total_Amount | 
+|-------------|------------|--------------|
+|A            |2           |25            |
+|A            |3           |40            |
+
+### 9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
+```sql
+SELECT 	customer_id,
+	SUM ( CASE 	WHEN product_name = 'sushi' 
+             		THEN 20*price 
+             		ELSE 10*price END) AS total_point
+                    
+FROM dannys_diner.sales
+JOIN dannys_diner.menu ON sales.product_id = menu.product_id
+GROUP BY customer_id
+ORDER BY customer_id;
+```
+
+#### SOLUTION
+| Customer_ID | Total_Point |
+|-------------|-------------|
+|A            |860          |
+|B            |940          |
+|C            |360          |
+
+### 10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
+```sql
+SELECT 	sales.customer_id,
+	SUM (CASE 	
+             	WHEN (sales.order_date >= members.join_date) AND (sales.order_date < members.join_date+7) THEN 20*menu.price
+               	WHEN menu.product_name = 'sushi' THEN 20*menu.price
+             	ELSE 10*menu.price
+             END) AS total_points
+             
+FROM dannys_diner.sales
+JOIN dannys_diner.menu ON sales.product_id = menu.product_id
+JOIN dannys_diner.members ON sales.customer_id = members.customer_id
+GROUP BY sales.customer_id
+ORDER BY sales.customer_id;
+```
+#### SOLUTION
+| Customer_ID | Total_Point |
+|-------------|-------------|
+|A            |1370         |
+|B            |940          |
